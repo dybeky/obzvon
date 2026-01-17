@@ -110,25 +110,47 @@ function initEventListeners() {
 
 // Initialize Settings Listeners
 function initSettingsListeners() {
+    const targetPreview = document.getElementById('targetPreview');
+
     elements.targetSizeInput.addEventListener('input', (e) => {
         settings.targetSize = parseInt(e.target.value);
         elements.targetSizeValue.textContent = settings.targetSize + 'px';
+        // Update preview
+        targetPreview.style.width = settings.targetSize + 'px';
+        targetPreview.style.height = settings.targetSize + 'px';
     });
 
     elements.spawnSpeedInput.addEventListener('input', (e) => {
         settings.spawnInterval = parseInt(e.target.value);
-        elements.spawnSpeedValue.textContent = settings.spawnInterval + 'ms';
+        const seconds = (settings.spawnInterval / 1000).toFixed(1);
+        elements.spawnSpeedValue.textContent = seconds + ' сек';
     });
 
     elements.targetLifeInput.addEventListener('input', (e) => {
         settings.targetLifetime = parseInt(e.target.value);
-        elements.targetLifeValue.textContent = settings.targetLifetime + 'ms';
+        const seconds = (settings.targetLifetime / 1000).toFixed(1);
+        elements.targetLifeValue.textContent = seconds + ' сек';
     });
 
     elements.gameTimeInput.addEventListener('input', (e) => {
         settings.gameTime = parseInt(e.target.value);
-        elements.gameTimeValue.textContent = settings.gameTime + 's';
+        elements.gameTimeValue.textContent = formatTime(settings.gameTime);
     });
+}
+
+// Format time to readable string
+function formatTime(seconds) {
+    if (seconds < 60) {
+        return seconds + ' сек';
+    } else if (seconds === 60) {
+        return '1 минута';
+    } else if (seconds < 120) {
+        return '1 мин ' + (seconds - 60) + ' сек';
+    } else if (seconds === 120) {
+        return '2 минуты';
+    } else {
+        return Math.floor(seconds / 60) + ' мин ' + (seconds % 60) + ' сек';
+    }
 }
 
 // Show Settings
