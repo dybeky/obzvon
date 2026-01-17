@@ -56,59 +56,61 @@
 
         <!-- Settings Screen -->
         <section class="settings-screen" id="settingsScreen">
-            <div class="settings-content">
-                <h2 class="settings-title">Настройки</h2>
+            <div class="settings-wrapper">
+                <!-- Left: Settings -->
+                <div class="settings-panel">
+                    <h2 class="settings-title">Настройки</h2>
 
-                <div class="settings-grid">
-                    <div class="setting-item">
-                        <label>Размер цели</label>
-                        <div class="setting-row">
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label>Размер цели</label>
                             <div class="setting-control">
+                                <span class="setting-label-left">Маленький</span>
                                 <input type="range" id="targetSize" min="30" max="120" value="70">
-                                <span class="setting-value" id="targetSizeValue">70px</span>
+                                <span class="setting-label-right">Большой</span>
                             </div>
-                            <div class="target-preview" id="targetPreview"></div>
+                            <span class="setting-value" id="targetSizeValue">70px</span>
+                        </div>
+
+                        <div class="setting-item">
+                            <label>Скорость появления</label>
+                            <p class="setting-hint">Как часто появляются новые цели</p>
+                            <div class="setting-control">
+                                <span class="setting-label-left">Быстро</span>
+                                <input type="range" id="spawnSpeed" min="200" max="1000" value="500">
+                                <span class="setting-label-right">Медленно</span>
+                            </div>
+                            <span class="setting-value" id="spawnSpeedValue">0.5 сек</span>
+                        </div>
+
+                        <div class="setting-item">
+                            <label>Время на клик</label>
+                            <p class="setting-hint">Сколько времени цель висит на экране</p>
+                            <div class="setting-control">
+                                <span class="setting-label-left">Мало</span>
+                                <input type="range" id="targetLife" min="400" max="2000" value="1100">
+                                <span class="setting-label-right">Много</span>
+                            </div>
+                            <span class="setting-value" id="targetLifeValue">1.1 сек</span>
                         </div>
                     </div>
 
-                    <div class="setting-item">
-                        <label>Скорость появления</label>
-                        <p class="setting-hint">Как часто появляются новые цели</p>
-                        <div class="setting-control">
-                            <span class="setting-label-left">Быстро</span>
-                            <input type="range" id="spawnSpeed" min="200" max="1000" value="500">
-                            <span class="setting-label-right">Медленно</span>
-                        </div>
-                        <span class="setting-value" id="spawnSpeedValue">0.5 сек</span>
-                    </div>
-
-                    <div class="setting-item">
-                        <label>Время на клик</label>
-                        <p class="setting-hint">Сколько времени цель висит на экране</p>
-                        <div class="setting-control">
-                            <span class="setting-label-left">Мало</span>
-                            <input type="range" id="targetLife" min="400" max="2000" value="1100">
-                            <span class="setting-label-right">Много</span>
-                        </div>
-                        <span class="setting-value" id="targetLifeValue">1.1 сек</span>
-                    </div>
-
-                    <div class="setting-item">
-                        <label>Длительность игры</label>
-                        <div class="setting-control">
-                            <input type="range" id="gameTime" min="15" max="180" value="60">
-                        </div>
-                        <span class="setting-value" id="gameTimeValue">1 минута</span>
+                    <div class="settings-buttons">
+                        <button class="btn btn-start" id="playBtn">
+                            <span>ИГРАТЬ</span>
+                        </button>
+                        <button class="btn btn-secondary" id="backBtn">
+                            <span>НАЗАД</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="settings-buttons">
-                    <button class="btn btn-start" id="playBtn">
-                        <span>ИГРАТЬ</span>
-                    </button>
-                    <button class="btn btn-secondary" id="backBtn">
-                        <span>НАЗАД</span>
-                    </button>
+                <!-- Right: Preview -->
+                <div class="settings-preview">
+                    <div class="preview-header">
+                        <span>Превью</span>
+                    </div>
+                    <div class="preview-area" id="previewArea"></div>
                 </div>
             </div>
         </section>
@@ -130,7 +132,7 @@
                 <div class="hud-center">
                     <div class="hud-item">
                         <span class="hud-label">TIME</span>
-                        <span class="hud-value time" id="timer">60</span>
+                        <span class="hud-value time" id="timer">0:00</span>
                     </div>
                 </div>
                 <div class="hud-right">
@@ -150,6 +152,7 @@
                 <div class="game-paused" id="gamePaused">
                     <h2>PAUSED</h2>
                     <p>Нажми <kbd>P</kbd> чтобы продолжить</p>
+                    <p>Нажми <kbd>ESC</kbd> чтобы выйти</p>
                 </div>
             </div>
 
@@ -184,12 +187,12 @@
 
                 <div class="game-stats">
                     <div class="game-stat">
-                        <span class="game-stat-value" id="finalHits">0</span>
-                        <span class="game-stat-label">Попаданий</span>
+                        <span class="game-stat-value" id="finalTime">0:00</span>
+                        <span class="game-stat-label">Время</span>
                     </div>
                     <div class="game-stat">
-                        <span class="game-stat-value" id="finalMisses">0</span>
-                        <span class="game-stat-label">Промахов</span>
+                        <span class="game-stat-value" id="finalHits">0</span>
+                        <span class="game-stat-label">Попаданий</span>
                     </div>
                     <div class="game-stat">
                         <span class="game-stat-value" id="finalAccuracy">0%</span>

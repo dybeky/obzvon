@@ -4,8 +4,7 @@
 const settings = {
     targetSize: 70,
     spawnInterval: 500,
-    targetLifetime: 1100,
-    gameTime: 60
+    targetLifetime: 1100
 };
 
 // Game State
@@ -17,11 +16,14 @@ const game = {
     maxCombo: 0,
     hits: 0,
     misses: 0,
-    timeLeft: 60,
+    elapsedTime: 0,
     targets: [],
     spawnIntervalId: null,
     timerInterval: null
 };
+
+// Preview State
+let previewInterval = null;
 
 // DOM Elements
 const elements = {
@@ -31,6 +33,7 @@ const elements = {
     gameOver: document.getElementById('gameOver'),
     gameArea: document.getElementById('gameArea'),
     gamePaused: document.getElementById('gamePaused'),
+    previewArea: document.getElementById('previewArea'),
     startBtn: document.getElementById('startBtn'),
     playBtn: document.getElementById('playBtn'),
     backBtn: document.getElementById('backBtn'),
@@ -44,8 +47,8 @@ const elements = {
     accuracy: document.getElementById('accuracy'),
     multiplier: document.getElementById('multiplier'),
     finalScore: document.getElementById('finalScore'),
+    finalTime: document.getElementById('finalTime'),
     finalHits: document.getElementById('finalHits'),
-    finalMisses: document.getElementById('finalMisses'),
     finalAccuracy: document.getElementById('finalAccuracy'),
     finalMaxCombo: document.getElementById('finalMaxCombo'),
     footer: document.querySelector('.footer'),
@@ -53,11 +56,9 @@ const elements = {
     targetSizeInput: document.getElementById('targetSize'),
     spawnSpeedInput: document.getElementById('spawnSpeed'),
     targetLifeInput: document.getElementById('targetLife'),
-    gameTimeInput: document.getElementById('gameTime'),
     targetSizeValue: document.getElementById('targetSizeValue'),
     spawnSpeedValue: document.getElementById('spawnSpeedValue'),
-    targetLifeValue: document.getElementById('targetLifeValue'),
-    gameTimeValue: document.getElementById('gameTimeValue')
+    targetLifeValue: document.getElementById('targetLifeValue')
 };
 
 // Initialize
@@ -82,7 +83,7 @@ function initEventListeners() {
     elements.pauseBtn.addEventListener('click', togglePause);
 
     // Quit Button
-    elements.quitBtn.addEventListener('click', quitGame);
+    elements.quitBtn.addEventListener('click', endGame);
 
     // Restart Button
     elements.restartBtn.addEventListener('click', () => {
@@ -110,20 +111,17 @@ function initEventListeners() {
 
 // Initialize Settings Listeners
 function initSettingsListeners() {
-    const targetPreview = document.getElementById('targetPreview');
-
     elements.targetSizeInput.addEventListener('input', (e) => {
         settings.targetSize = parseInt(e.target.value);
         elements.targetSizeValue.textContent = settings.targetSize + 'px';
-        // Update preview
-        targetPreview.style.width = settings.targetSize + 'px';
-        targetPreview.style.height = settings.targetSize + 'px';
     });
 
     elements.spawnSpeedInput.addEventListener('input', (e) => {
         settings.spawnInterval = parseInt(e.target.value);
         const seconds = (settings.spawnInterval / 1000).toFixed(1);
         elements.spawnSpeedValue.textContent = seconds + ' сек';
+        // Restart preview with new settings
+        restartPreview();
     });
 
     elements.targetLifeInput.addEventListener('input', (e) => {
@@ -131,26 +129,6 @@ function initSettingsListeners() {
         const seconds = (settings.targetLifetime / 1000).toFixed(1);
         elements.targetLifeValue.textContent = seconds + ' сек';
     });
-
-    elements.gameTimeInput.addEventListener('input', (e) => {
-        settings.gameTime = parseInt(e.target.value);
-        elements.gameTimeValue.textContent = formatTime(settings.gameTime);
-    });
-}
-
-// Format time to readable string
-function formatTime(seconds) {
-    if (seconds < 60) {
-        return seconds + ' сек';
-    } else if (seconds === 60) {
-        return '1 минута';
-    } else if (seconds < 120) {
-        return '1 мин ' + (seconds - 60) + ' сек';
-    } else if (seconds === 120) {
-        return '2 минуты';
-    } else {
-        return Math.floor(seconds / 60) + ' мин ' + (seconds % 60) + ' сек';
-    }
 }
 
 // Show Settings
@@ -158,10 +136,12 @@ function showSettings() {
     elements.hero.classList.add('hidden');
     elements.footer.classList.add('hidden');
     elements.settingsScreen.classList.add('active');
+    startPreview();
 }
 
 // Show Menu
 function showMenu() {
+    stopPreview();
     elements.hero.classList.remove('hidden');
     elements.footer.classList.remove('hidden');
     elements.settingsScreen.classList.remove('active');
@@ -169,12 +149,78 @@ function showMenu() {
     elements.gameOver.classList.remove('active');
 }
 
+// Start Preview
+function startPreview() {
+    stopPreview();
+    spawnPreviewTarget();
+    previewInterval = setInterval(spawnPreviewTarget, settings.spawnInterval);
+}
+
+// Stop Preview
+function stopPreview() {
+    if (previewInterval) {
+        clearInterval(previewInterval);
+        previewInterval = null;
+    }
+    if (elements.previewArea) {
+        elements.previewArea.innerHTML = '';
+    }
+}
+
+// Restart Preview
+function restartPreview() {
+    if (elements.settingsScreen.classList.contains('active')) {
+        startPreview();
+    }
+}
+
+// Spawn Preview Target
+function spawnPreviewTarget() {
+    if (!elements.previewArea) return;
+
+    const rect = elements.previewArea.getBoundingClientRect();
+    const padding = settings.targetSize;
+    const maxX = rect.width - padding * 2;
+    const maxY = rect.height - padding * 2;
+
+    if (maxX <= 0 || maxY <= 0) return;
+
+    const x = Math.random() * maxX + padding;
+    const y = Math.random() * maxY + padding;
+
+    const target = document.createElement('div');
+    target.classList.add('preview-target');
+
+    const colors = ['purple', 'yellow', 'green'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    target.classList.add(color);
+
+    target.style.width = settings.targetSize + 'px';
+    target.style.height = settings.targetSize + 'px';
+    target.style.left = x + 'px';
+    target.style.top = y + 'px';
+
+    elements.previewArea.appendChild(target);
+
+    // Fade out after lifetime
+    setTimeout(() => {
+        if (target.parentNode) {
+            target.classList.add('fade-out');
+            setTimeout(() => {
+                if (target.parentNode) {
+                    target.remove();
+                }
+            }, 300);
+        }
+    }, settings.targetLifetime);
+}
+
 // Keyboard Handler
 function handleKeyboard(e) {
     // Space to start
     if (e.code === 'Space') {
         e.preventDefault();
-        if (elements.hero.classList.contains('hidden') === false) {
+        if (!elements.hero.classList.contains('hidden')) {
             showSettings();
         } else if (elements.settingsScreen.classList.contains('active')) {
             startGame();
@@ -192,7 +238,7 @@ function handleKeyboard(e) {
     // ESC to quit/back
     if (e.code === 'Escape') {
         if (game.isRunning) {
-            quitGame();
+            endGame();
         } else if (elements.settingsScreen.classList.contains('active')) {
             showMenu();
         } else if (elements.gameOver.classList.contains('active')) {
@@ -204,19 +250,21 @@ function handleKeyboard(e) {
 
 // Start Game
 function startGame() {
+    stopPreview();
+
     // Reset game state
     game.score = 0;
     game.combo = 0;
     game.maxCombo = 0;
     game.hits = 0;
     game.misses = 0;
-    game.timeLeft = settings.gameTime;
+    game.elapsedTime = 0;
     game.targets = [];
     game.isRunning = true;
     game.isPaused = false;
 
     // Clear game area
-    elements.gameArea.innerHTML = '<div class="game-paused" id="gamePaused"><h2>PAUSED</h2><p>Нажми <kbd>P</kbd> чтобы продолжить</p></div>';
+    elements.gameArea.innerHTML = '<div class="game-paused" id="gamePaused"><h2>PAUSED</h2><p>Нажми <kbd>P</kbd> чтобы продолжить</p><p>Нажми <kbd>ESC</kbd> чтобы выйти</p></div>';
 
     // Update UI
     updateHUD();
@@ -231,7 +279,7 @@ function startGame() {
     // Start spawning targets
     game.spawnIntervalId = setInterval(spawnTarget, settings.spawnInterval);
 
-    // Start timer
+    // Start timer (counting up)
     game.timerInterval = setInterval(updateTimer, 1000);
 
     // Spawn first target immediately
@@ -419,11 +467,18 @@ function showScorePopup(x, y, text, type) {
     }, 800);
 }
 
+// Format time
+function formatTimeDisplay(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins + ':' + (secs < 10 ? '0' : '') + secs;
+}
+
 // Update HUD
 function updateHUD() {
     elements.score.textContent = game.score;
     elements.combo.textContent = 'x' + game.combo;
-    elements.timer.textContent = game.timeLeft;
+    elements.timer.textContent = formatTimeDisplay(game.elapsedTime);
 
     // Calculate accuracy
     const total = game.hits + game.misses;
@@ -442,16 +497,12 @@ function updateHUD() {
     }
 }
 
-// Update Timer
+// Update Timer (counting up)
 function updateTimer() {
     if (!game.isRunning || game.isPaused) return;
 
-    game.timeLeft--;
-    elements.timer.textContent = game.timeLeft;
-
-    if (game.timeLeft <= 0) {
-        endGame();
-    }
+    game.elapsedTime++;
+    elements.timer.textContent = formatTimeDisplay(game.elapsedTime);
 }
 
 // Toggle Pause
@@ -468,21 +519,10 @@ function togglePause() {
     }
 }
 
-// Quit Game
-function quitGame() {
-    game.isRunning = false;
-    game.isPaused = false;
-
-    clearInterval(game.spawnIntervalId);
-    clearInterval(game.timerInterval);
-
-    elements.gameScreen.classList.remove('active');
-    showSettings();
-}
-
 // End Game
 function endGame() {
     game.isRunning = false;
+    game.isPaused = false;
 
     clearInterval(game.spawnIntervalId);
     clearInterval(game.timerInterval);
@@ -493,8 +533,8 @@ function endGame() {
 
     // Update game over screen
     elements.finalScore.textContent = game.score;
+    elements.finalTime.textContent = formatTimeDisplay(game.elapsedTime);
     elements.finalHits.textContent = game.hits;
-    elements.finalMisses.textContent = game.misses;
     elements.finalAccuracy.textContent = accuracy + '%';
     elements.finalMaxCombo.textContent = game.maxCombo;
 
