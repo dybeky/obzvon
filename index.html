@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OBZVON - Тренажёр рефлексов</title>
+    <title>OBZVON</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -45,21 +45,63 @@
                     <span class="title-line">OBZVON<span class="accent">.</span></span>
                 </h1>
 
-                <!-- Difficulty Selection -->
-                <div class="difficulty-select">
-                    <button class="diff-btn active" data-diff="easy">Easy</button>
-                    <button class="diff-btn" data-diff="medium">Medium</button>
-                    <button class="diff-btn" data-diff="hard">Hard</button>
-                </div>
-
                 <button class="btn btn-start" id="startBtn">
                     <span>START</span>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                         <polygon points="5 3 19 12 5 21 5 3"></polygon>
                     </svg>
                 </button>
+            </div>
+        </section>
 
-                            </div>
+        <!-- Settings Screen -->
+        <section class="settings-screen" id="settingsScreen">
+            <div class="settings-content">
+                <h2 class="settings-title">Настройки</h2>
+
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label>Размер цели</label>
+                        <div class="setting-control">
+                            <input type="range" id="targetSize" min="30" max="120" value="70">
+                            <span class="setting-value" id="targetSizeValue">70px</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label>Скорость спавна</label>
+                        <div class="setting-control">
+                            <input type="range" id="spawnSpeed" min="200" max="1000" value="500">
+                            <span class="setting-value" id="spawnSpeedValue">500ms</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label>Время жизни цели</label>
+                        <div class="setting-control">
+                            <input type="range" id="targetLife" min="400" max="2000" value="1100">
+                            <span class="setting-value" id="targetLifeValue">1100ms</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label>Время игры</label>
+                        <div class="setting-control">
+                            <input type="range" id="gameTime" min="15" max="120" value="60">
+                            <span class="setting-value" id="gameTimeValue">60s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-buttons">
+                    <button class="btn btn-start" id="playBtn">
+                        <span>ИГРАТЬ</span>
+                    </button>
+                    <button class="btn btn-secondary" id="backBtn">
+                        <span>НАЗАД</span>
+                    </button>
+                </div>
+            </div>
         </section>
 
         <!-- Game Screen -->
@@ -129,10 +171,6 @@
                 <div class="final-score">
                     <span class="final-score-label">Финальный счёт</span>
                     <span class="final-score-value" id="finalScore">0</span>
-                </div>
-
-                <div class="new-record" id="newRecord">
-                    <span>NEW HIGH SCORE!</span>
                 </div>
 
                 <div class="game-stats">

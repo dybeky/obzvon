@@ -1,10 +1,17 @@
 // ===== OBZVON Game =====
 
+// Game Settings
+const settings = {
+    targetSize: 70,
+    spawnInterval: 500,
+    targetLifetime: 1100,
+    gameTime: 60
+};
+
 // Game State
 const game = {
     isRunning: false,
     isPaused: false,
-    difficulty: 'easy',
     score: 0,
     combo: 0,
     maxCombo: 0,
@@ -12,114 +19,64 @@ const game = {
     misses: 0,
     timeLeft: 60,
     targets: [],
-    spawnInterval: null,
-    timerInterval: null,
-    highScores: {
-        easy: 0,
-        medium: 0,
-        hard: 0
-    },
-    bestCombos: {
-        easy: 0,
-        medium: 0,
-        hard: 0
-    }
-};
-
-// Difficulty Settings
-const difficultySettings = {
-    easy: {
-        targetSize: 85,
-        spawnInterval: 650,
-        targetLifetime: 1400
-    },
-    medium: {
-        targetSize: 70,
-        spawnInterval: 480,
-        targetLifetime: 1100
-    },
-    hard: {
-        targetSize: 55,
-        spawnInterval: 350,
-        targetLifetime: 800
-    }
+    spawnIntervalId: null,
+    timerInterval: null
 };
 
 // DOM Elements
 const elements = {
     hero: document.getElementById('hero'),
+    settingsScreen: document.getElementById('settingsScreen'),
     gameScreen: document.getElementById('gameScreen'),
     gameOver: document.getElementById('gameOver'),
     gameArea: document.getElementById('gameArea'),
     gamePaused: document.getElementById('gamePaused'),
     startBtn: document.getElementById('startBtn'),
+    playBtn: document.getElementById('playBtn'),
+    backBtn: document.getElementById('backBtn'),
     pauseBtn: document.getElementById('pauseBtn'),
     quitBtn: document.getElementById('quitBtn'),
     restartBtn: document.getElementById('restartBtn'),
     menuBtn: document.getElementById('menuBtn'),
-    diffBtns: document.querySelectorAll('.diff-btn'),
     score: document.getElementById('score'),
     combo: document.getElementById('combo'),
     timer: document.getElementById('timer'),
     accuracy: document.getElementById('accuracy'),
     multiplier: document.getElementById('multiplier'),
-    highScore: document.getElementById('highScore'),
-    bestCombo: document.getElementById('bestCombo'),
     finalScore: document.getElementById('finalScore'),
     finalHits: document.getElementById('finalHits'),
     finalMisses: document.getElementById('finalMisses'),
     finalAccuracy: document.getElementById('finalAccuracy'),
     finalMaxCombo: document.getElementById('finalMaxCombo'),
-    newRecord: document.getElementById('newRecord'),
-    footer: document.querySelector('.footer')
+    footer: document.querySelector('.footer'),
+    // Settings inputs
+    targetSizeInput: document.getElementById('targetSize'),
+    spawnSpeedInput: document.getElementById('spawnSpeed'),
+    targetLifeInput: document.getElementById('targetLife'),
+    gameTimeInput: document.getElementById('gameTime'),
+    targetSizeValue: document.getElementById('targetSizeValue'),
+    spawnSpeedValue: document.getElementById('spawnSpeedValue'),
+    targetLifeValue: document.getElementById('targetLifeValue'),
+    gameTimeValue: document.getElementById('gameTimeValue')
 };
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    loadHighScores();
     initParticles();
     initEventListeners();
-    updateHighScoreDisplay();
+    initSettingsListeners();
 });
-
-// Load High Scores from localStorage
-function loadHighScores() {
-    const saved = localStorage.getItem('obzvon_scores');
-    if (saved) {
-        const data = JSON.parse(saved);
-        game.highScores = data.highScores || game.highScores;
-        game.bestCombos = data.bestCombos || game.bestCombos;
-    }
-}
-
-// Save High Scores to localStorage
-function saveHighScores() {
-    localStorage.setItem('obzvon_scores', JSON.stringify({
-        highScores: game.highScores,
-        bestCombos: game.bestCombos
-    }));
-}
-
-// Update High Score Display
-function updateHighScoreDisplay() {
-    elements.highScore.textContent = game.highScores[game.difficulty];
-    elements.bestCombo.textContent = game.bestCombos[game.difficulty];
-}
 
 // Initialize Event Listeners
 function initEventListeners() {
-    // Start Button
-    elements.startBtn.addEventListener('click', startGame);
+    // Start Button -> Show Settings
+    elements.startBtn.addEventListener('click', showSettings);
 
-    // Difficulty Buttons
-    elements.diffBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            elements.diffBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            game.difficulty = btn.dataset.diff;
-            updateHighScoreDisplay();
-        });
-    });
+    // Play Button -> Start Game
+    elements.playBtn.addEventListener('click', startGame);
+
+    // Back Button -> Show Menu
+    elements.backBtn.addEventListener('click', showMenu);
 
     // Pause Button
     elements.pauseBtn.addEventListener('click', togglePause);
@@ -151,12 +108,53 @@ function initEventListeners() {
     document.addEventListener('keydown', handleKeyboard);
 }
 
+// Initialize Settings Listeners
+function initSettingsListeners() {
+    elements.targetSizeInput.addEventListener('input', (e) => {
+        settings.targetSize = parseInt(e.target.value);
+        elements.targetSizeValue.textContent = settings.targetSize + 'px';
+    });
+
+    elements.spawnSpeedInput.addEventListener('input', (e) => {
+        settings.spawnInterval = parseInt(e.target.value);
+        elements.spawnSpeedValue.textContent = settings.spawnInterval + 'ms';
+    });
+
+    elements.targetLifeInput.addEventListener('input', (e) => {
+        settings.targetLifetime = parseInt(e.target.value);
+        elements.targetLifeValue.textContent = settings.targetLifetime + 'ms';
+    });
+
+    elements.gameTimeInput.addEventListener('input', (e) => {
+        settings.gameTime = parseInt(e.target.value);
+        elements.gameTimeValue.textContent = settings.gameTime + 's';
+    });
+}
+
+// Show Settings
+function showSettings() {
+    elements.hero.classList.add('hidden');
+    elements.footer.classList.add('hidden');
+    elements.settingsScreen.classList.add('active');
+}
+
+// Show Menu
+function showMenu() {
+    elements.hero.classList.remove('hidden');
+    elements.footer.classList.remove('hidden');
+    elements.settingsScreen.classList.remove('active');
+    elements.gameScreen.classList.remove('active');
+    elements.gameOver.classList.remove('active');
+}
+
 // Keyboard Handler
 function handleKeyboard(e) {
-    // Space to start/restart
+    // Space to start
     if (e.code === 'Space') {
         e.preventDefault();
-        if (!game.isRunning && !elements.gameScreen.classList.contains('active') && !elements.gameOver.classList.contains('active')) {
+        if (elements.hero.classList.contains('hidden') === false) {
+            showSettings();
+        } else if (elements.settingsScreen.classList.contains('active')) {
             startGame();
         } else if (elements.gameOver.classList.contains('active')) {
             elements.gameOver.classList.remove('active');
@@ -169,10 +167,12 @@ function handleKeyboard(e) {
         togglePause();
     }
 
-    // ESC to quit
+    // ESC to quit/back
     if (e.code === 'Escape') {
         if (game.isRunning) {
             quitGame();
+        } else if (elements.settingsScreen.classList.contains('active')) {
+            showMenu();
         } else if (elements.gameOver.classList.contains('active')) {
             elements.gameOver.classList.remove('active');
             showMenu();
@@ -188,7 +188,7 @@ function startGame() {
     game.maxCombo = 0;
     game.hits = 0;
     game.misses = 0;
-    game.timeLeft = 60;
+    game.timeLeft = settings.gameTime;
     game.targets = [];
     game.isRunning = true;
     game.isPaused = false;
@@ -202,13 +202,12 @@ function startGame() {
     // Show game screen
     elements.hero.classList.add('hidden');
     elements.footer.classList.add('hidden');
+    elements.settingsScreen.classList.remove('active');
     elements.gameScreen.classList.add('active');
     elements.gameOver.classList.remove('active');
-    elements.gamePaused.classList.remove('active');
 
     // Start spawning targets
-    const settings = difficultySettings[game.difficulty];
-    game.spawnInterval = setInterval(spawnTarget, settings.spawnInterval);
+    game.spawnIntervalId = setInterval(spawnTarget, settings.spawnInterval);
 
     // Start timer
     game.timerInterval = setInterval(updateTimer, 1000);
@@ -221,7 +220,6 @@ function startGame() {
 function spawnTarget() {
     if (!game.isRunning || game.isPaused) return;
 
-    const settings = difficultySettings[game.difficulty];
     const gameRect = elements.gameArea.getBoundingClientRect();
 
     // Calculate safe spawn area
@@ -453,32 +451,19 @@ function quitGame() {
     game.isRunning = false;
     game.isPaused = false;
 
-    clearInterval(game.spawnInterval);
+    clearInterval(game.spawnIntervalId);
     clearInterval(game.timerInterval);
 
     elements.gameScreen.classList.remove('active');
-    showMenu();
+    showSettings();
 }
 
 // End Game
 function endGame() {
     game.isRunning = false;
 
-    clearInterval(game.spawnInterval);
+    clearInterval(game.spawnIntervalId);
     clearInterval(game.timerInterval);
-
-    // Check for new high score
-    let isNewRecord = false;
-    if (game.score > game.highScores[game.difficulty]) {
-        game.highScores[game.difficulty] = game.score;
-        isNewRecord = true;
-    }
-
-    if (game.maxCombo > game.bestCombos[game.difficulty]) {
-        game.bestCombos[game.difficulty] = game.maxCombo;
-    }
-
-    saveHighScores();
 
     // Calculate final accuracy
     const total = game.hits + game.misses;
@@ -491,24 +476,9 @@ function endGame() {
     elements.finalAccuracy.textContent = accuracy + '%';
     elements.finalMaxCombo.textContent = game.maxCombo;
 
-    if (isNewRecord) {
-        elements.newRecord.classList.add('active');
-    } else {
-        elements.newRecord.classList.remove('active');
-    }
-
     // Show game over screen
     elements.gameScreen.classList.remove('active');
     elements.gameOver.classList.add('active');
-}
-
-// Show Menu
-function showMenu() {
-    elements.hero.classList.remove('hidden');
-    elements.footer.classList.remove('hidden');
-    elements.gameScreen.classList.remove('active');
-    elements.gameOver.classList.remove('active');
-    updateHighScoreDisplay();
 }
 
 // Particles
