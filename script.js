@@ -105,6 +105,15 @@ function initEventListeners() {
         }
     });
 
+    // Touch support for game area misses
+    elements.gameArea.addEventListener('touchstart', (e) => {
+        if (!game.isRunning || game.isPaused) return;
+        if (e.target === elements.gameArea) {
+            const touch = e.touches[0];
+            handleMiss(touch.clientX, touch.clientY);
+        }
+    }, { passive: true });
+
     // Keyboard Controls
     document.addEventListener('keydown', handleKeyboard);
 }
@@ -325,6 +334,13 @@ function spawnTarget() {
         e.stopPropagation();
         handleHit(target, spawnTime);
     });
+
+    // Touch handler for faster mobile response
+    target.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        handleHit(target, spawnTime);
+    }, { passive: false });
 
     // Add to game area
     elements.gameArea.appendChild(target);
