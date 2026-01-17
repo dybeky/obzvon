@@ -2,9 +2,9 @@
 
 // Game Settings
 const settings = {
-    targetSize: 70,
-    spawnInterval: 500,
-    targetLifetime: 1100
+    targetSize: 65,
+    spawnInterval: 800,
+    targetLifetime: 800
 };
 
 // Game State
@@ -588,3 +588,104 @@ function createParticle(container) {
 
     container.appendChild(particle);
 }
+
+// ===== Protection =====
+
+// Disable right-click context menu
+document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    return false;
+});
+
+// Disable keyboard shortcuts for DevTools
+document.addEventListener('keydown', (e) => {
+    // F12
+    if (e.key === 'F12' || e.keyCode === 123) {
+        e.preventDefault();
+        return false;
+    }
+
+    // Ctrl+Shift+I (DevTools)
+    if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73)) {
+        e.preventDefault();
+        return false;
+    }
+
+    // Ctrl+Shift+J (Console)
+    if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j' || e.keyCode === 74)) {
+        e.preventDefault();
+        return false;
+    }
+
+    // Ctrl+Shift+C (Inspect Element)
+    if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c' || e.keyCode === 67)) {
+        e.preventDefault();
+        return false;
+    }
+
+    // Ctrl+U (View Source)
+    if (e.ctrlKey && (e.key === 'U' || e.key === 'u' || e.keyCode === 85)) {
+        e.preventDefault();
+        return false;
+    }
+
+    // Ctrl+S (Save)
+    if (e.ctrlKey && (e.key === 'S' || e.key === 's' || e.keyCode === 83)) {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// Disable text selection
+document.addEventListener('selectstart', (e) => {
+    if (e.target.tagName !== 'INPUT') {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// Disable drag
+document.addEventListener('dragstart', (e) => {
+    e.preventDefault();
+    return false;
+});
+
+// Console warning
+(function() {
+    const warningStyle = 'color: red; font-size: 30px; font-weight: bold;';
+    const messageStyle = 'color: white; font-size: 16px;';
+
+    console.clear();
+    console.log('%cСТОП!', warningStyle);
+    console.log('%cЭто функция браузера предназначена для разработчиков.', messageStyle);
+    console.log('%cНе вводите и не вставляйте сюда код.', messageStyle);
+})();
+
+// DevTools detection
+(function() {
+    const threshold = 160;
+
+    const check = () => {
+        const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+        const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+
+        if (widthThreshold || heightThreshold) {
+            document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#292929;color:#9a9aed;font-family:Inter,sans-serif;font-size:2rem;text-align:center;padding:20px;">DevTools обнаружены.<br>Закройте их для продолжения.</div>';
+        }
+    };
+
+    setInterval(check, 1000);
+})();
+
+// Disable console methods
+(function() {
+    const noop = () => {};
+    const methods = ['log', 'debug', 'info', 'warn', 'error', 'table', 'trace', 'dir', 'dirxml', 'group', 'groupEnd', 'time', 'timeEnd', 'assert', 'profile'];
+
+    // Keep original console for our warning
+    setTimeout(() => {
+        methods.forEach(method => {
+            console[method] = noop;
+        });
+    }, 100);
+})();

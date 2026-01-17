@@ -33,6 +33,11 @@ body {
     /* Mobile optimizations */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: none;
+    /* Protection */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /* ===== Floating Background ===== */
